@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  namespace: ha-platform
+spec:
+  type: LoadBalancer # Or NodePort if LoadBalancer doesn't work on your setup
+  ports:
+  - port: 80
+    targetPort: 5000
+    nodePort: 30001 # Fixed port for easy access
+  selector:
+    app: web

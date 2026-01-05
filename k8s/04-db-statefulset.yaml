@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: ha-platform
+spec:
+  serviceName: "postgres"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      initContainers:
+      - name: init-postgres
+        image: postgres:13-alpine
+        command: ["bash", "/scripts/init-db.sh"]
+        envFrom:
+        - secretRef:
+            name: app-secret
+        volumeMounts:
+        - name: pgdata
+          mountPath: /var/lib/postgresql/data
+        - name: scripts
+          mountPath: /scripts
+      containers:
+      - name: postgres
+        image: postgres:13-alpine
+        ports:
+        - containerPort: 5432
+          name: postgres
+        envFrom:
+        - secretRef:
+            name: app-secret
+        # Custom config arguments for replication
+        args: ["-c", "wal_level=replica", "-c", "max_wal_senders=10", "-c", "hot_standby=on"]
+        volumeMounts:
+        - name: pgdata
+          mountPath: /var/lib/postgresql/data
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-U", "admin"]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "admin"]
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: scripts
+        configMap:
+          name: db-scripts
+          defaultMode: 0755
+  volumeClaimTemplates:
+  - metadata:
+      name: pgdata
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

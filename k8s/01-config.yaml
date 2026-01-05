@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ha-platform
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: ha-platform
+data:
+  DB_HOST: "postgres-0.postgres.ha-platform.svc.cluster.local" # Points to Primary
+  DB_NAME: "appdb"
+  DB_PORT: "5432"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+  namespace: ha-platform
+type: Opaque
+stringData:
+  # Using stringData for convenience. K8s converts to base64 automatically.
+  DB_USER: "admin"
+  DB_PASSWORD: "secretpassword"
+  POSTGRES_USER: "admin"
+  POSTGRES_PASSWORD: "secretpassword"
+  POSTGRES_DB: "appdb"
+  REPLICATION_USER: "repl_user"
+  REPLICATION_PASSWORD: "repl_password"

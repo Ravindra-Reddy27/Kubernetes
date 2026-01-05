@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-scripts
+  namespace: ha-platform
+data:
+  init-db.sh: |
+    #!/bin/bash
+    set -e
+
+    # Define data directory
+    PGDATA="/var/lib/postgresql/data"
+    
+    # Check Hostname to determine role
+    if [[ $HOSTNAME =~ -0$ ]]; then
+      echo "I am PRIMARY ($HOSTNAME)"
+      if [ ! -s "$PGDATA/PG_VERSION" ]; then
+        echo "Initializing Primary DB..."
+        # Initialize standard DB
+        docker-entrypoint.sh postgres & 
+        PID=$!
+        sleep 10  # Give it time to start
+        
+        # Create Replication User
+        psql -U $POSTGRES_USER -d $POSTGRES_DB -c "CREATE USER $REPLICATION_USER REPLICATION LOGIN ENCRYPTED PASSWORD '$REPLICATION_PASSWORD';"
+        
+        # Configure Access for Replication
+        echo "host replication $REPLICATION_USER 0.0.0.0/0 md5" >> $PGDATA/pg_hba.conf
+        
+        # Stop temp instance
+        kill $PID
+        wait $PID
+      fi
+    else
+      echo "I am STANDBY ($HOSTNAME)"
+      if [ ! -s "$PGDATA/PG_VERSION" ]; then
+        echo "Waiting for Primary to be ready..."
+        until pg_isready -h postgres-0.postgres.ha-platform.svc.cluster.local -U $POSTGRES_USER; do
+          sleep 2
+        done
+        
+        echo "Cloning data from Primary..."
+        PGPASSWORD=$REPLICATION_PASSWORD pg_basebackup -h postgres-0.postgres.ha-platform.svc.cluster.local -U $REPLICATION_USER -D $PGDATA -Fp -Xs -P -R
+      fi
+    fi

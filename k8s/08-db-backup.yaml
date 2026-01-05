@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backup
+  namespace: ha-platform
+spec:
+  schedule: "0 0 * * *" # Run daily at midnight
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: postgres:13-alpine
+            command: ["/bin/sh", "-c"]
+            args:
+            - PGPASSWORD=$POSTGRES_PASSWORD pg_dump -h postgres-0.postgres.ha-platform.svc.cluster.local -U $POSTGRES_USER $POSTGRES_DB > /backup/db_$(date +%F).sql
+            envFrom:
+            - secretRef:
+                name: app-secret
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup-storage
+            emptyDir: {} # In production, use a PVC or S3

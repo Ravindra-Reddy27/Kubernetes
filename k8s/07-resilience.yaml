@@ -1,0 +1,21 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: web-pdb
+  namespace: ha-platform
+spec:
+  minAvailable: 2 # Ensure at least 2 web pods are always up
+  selector:
+    matchLabels:
+      app: web
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: db-pdb
+  namespace: ha-platform
+spec:
+  minAvailable: 2 # Ensure at least 2 DB pods are always up
+  selector:
+    matchLabels:
+      app: postgres

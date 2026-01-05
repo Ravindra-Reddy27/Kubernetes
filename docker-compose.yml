@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=appdb
+      - DB_USER=admin
+      - DB_PASSWORD=secret
+    depends_on:
+      - db
+    networks:
+      - ha-network
+
+  db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_DB=appdb
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=secret
+    ports:
+      - "5432:5432"
+    networks:
+      - ha-network
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+networks:
+  ha-network:
+
+volumes:
+  db-data:
