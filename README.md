@@ -94,6 +94,7 @@ Instead, we will demonstrate Pod Recovery by forcibly deleting a pod. The system
 3. Observed the ReplicaSet immediately scheduling a replacement pod to maintain the desired state (3 replicas).
 
 [![Pods web recovery](images/Pods-web-recovery.png)](images/Pods-web-recovery.png)
+[![Database-recovery Diagram](images/Database-recovery.png)](images/Database-recovery.png)
 
 
 ## 7. Backup Strategy
