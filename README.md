@@ -10,7 +10,7 @@ This project deploys a production-grade, highly available infrastructure on Kube
 
 ## 2. Prerequisites
 Before deploying the platform, ensure you have the following tools installed:
-* **Docker Desktop** (with Kubernetes enabled = Kind).
+* **Docker Desktop** Docker Desktop (with Kubernetes enabled) OR Kind.
 * **kubectl** CLI tool configured to talk to your cluster.
 * **Docker** (to build the local web application image).
 
@@ -53,7 +53,7 @@ kubectl apply -f k8s/03-db-scripts.yaml
 kubectl apply -f k8s/04-db-statefulset.yaml
 ```
 
-Wait for the database pods (`postgres-0`, `postgres-1`, `postgres-2`) to reach `Running` status before proceeding.
+Wait for the database pods (`postgres-0`, `postgres-1`, `postgres-2`) to reach `Running` status before proceeding. ( `kubectl get pods -n ha-platform` )
 
 4. Deploy the Web Application:
 ```bash
