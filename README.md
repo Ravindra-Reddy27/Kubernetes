@@ -90,7 +90,7 @@ Instead, we will demonstrate Pod Recovery by forcibly deleting a pod. The system
 
 ### Test Scenario:
 1. Identified a running web pod.
-2. Forcibly deleted the pod using `kubectl delete pod <pod-name>`.
+2. Forcibly deleted the pod using `kubectl delete pod <pod-name> -n ha-platform`.
 3. Observed the ReplicaSet immediately scheduling a replacement pod to maintain the desired state (3 replicas).
 
 [![Pods web recovery](images/Pods-web-recovery.png)](images/Pods-web-recovery.png)
